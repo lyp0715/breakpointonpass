@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upyun表单上传例子</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link href="/css/stream-v1.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<p style="color: red;">Form表单上传是不支持断点续传。上传到又拍云，请勿上传太大的文件（流量与存储目前都是需要钱的）。</p>
+
+<div id="i_select_files">
+</div>
+
+<div id="i_stream_files_queue">
+</div>
+<button onclick="javascript:_t.upload();">开始上传</button>
+|
+<button onclick="javascript:_t.stop();">停止上传</button>
+|
+<button onclick="javascript:_t.cancel();">取消</button>
+|
+<button onclick="javascript:_t.disable();">禁用文件选择</button>
+|
+<button onclick="javascript:_t.enable();">启用文件选择</button>
+|
+<button onclick="javascript:_t.hideBrowseBlock();">隐藏文件选择按钮</button>
+|
+<button onclick="javascript:_t.showBrowseBlock();">显示文件选择按钮</button>
+<br>
+Messages:
+<div id="i_stream_message_container" class="stream-main-upload-box" style="overflow: auto;height:200px;">
+</div>
+<br>
+
+
+<script type="text/javascript" src="/js/stream-v1.js"></script>
+<script type="text/javascript">
+
+    var GLOBAL_UPYUN = null;
+    function fGetUpyunAuth() {
+        var xhr = window.XMLHttpRequest ? new XMLHttpRequest : new ActiveXObject("Microsoft.XMLHTTP");
+        var upyun = "https://impress.pw/api/upyun?" + new Date().getTime();
+        xhr.open("GET", upyun, !0);
+        /** IE7,8 兼容*/
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState != 4 || xhr.status < 200)
+                return false;
+
+            GLOBAL_UPYUN = eval("(" + xhr.responseText + ")");
+            GLOBAL_UPYUN && fInit();
+        }
+        xhr.send();
+    }
+
+    function fInit() {
+        /**
+         * 配置文件（如果没有默认字样，说明默认值就是注释下的值）
+         * 但是，on*（onSelect， onMaxSizeExceed...）等函数的默认行为
+         * 是在ID为i_stream_message_container的页面元素中写日志
+         */
+        var config = {
+            formed: true, /** 强制form表单的方式传输(此种方式不支持断点续传) */
+            browseFileId: "i_select_files", /** 选择文件的ID, 默认: i_select_files */
+            browseFileBtn: "<div>请选择文件</div>", /** 显示选择文件的样式, 默认: `<div>请选择文件</div>` */
+            dragAndDropArea: "i_select_files", /** 拖拽上传区域，Id（字符类型"i_select_files"）或者DOM对象, 默认: `i_select_files` */
+            dragAndDropTips: "<span>把文件(文件夹)拖拽到这里</span>", /** 拖拽提示, 默认: `<span>把文件(文件夹)拖拽到这里</span>` */
+            filesQueueId: "i_stream_files_queue", /** 文件上传容器的ID, 默认: i_stream_files_queue */
+            filesQueueHeight: 200, /** 文件上传容器的高度（px）, 默认: 450 */
+            multipleFiles: true,
+            maxSize: 10 * 1024 * 1024, /** 10M */
+            messagerId: "i_stream_message_container", /** 消息显示容器的ID, 默认: i_stream_message_container */
+
+            fileFieldName: 'file', /* upyun要求file参数。 */
+            frmUploadURL : GLOBAL_UPYUN['host'],
+            postVarsPerFile: {
+                bucket: GLOBAL_UPYUN['bucket'],
+                'save-key': GLOBAL_UPYUN['save-key'],
+                expiration: GLOBAL_UPYUN['expiration'],
+                signature: GLOBAL_UPYUN['signature'],
+                policy: GLOBAL_UPYUN['policy']
+            },
+            onComplete : function(file, msg) {
+                var j = JSON.parse(file.msg), link = GLOBAL_UPYUN['domain'] + j.url;
+
+                var o = document.getElementById("i_stream_message_container");
+                o && (o.innerHTML += "<br>" + "<span style='color:red;'>上传成功: " + link + "</span>") && (o.scrollTop = o.scrollHeight);
+            }
+        };
+        var _t = new Stream(config);
+    }
+
+    fGetUpyunAuth();
+</script>
+</body>

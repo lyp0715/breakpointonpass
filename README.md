@@ -1,1 +1,5 @@
-#BreakPointOnPass
+java实现断点续传
+
+项目说明：借助java5线程池实现分段上传
+
+作者：小泽
